@@ -24,8 +24,10 @@ const TitleBlack = styled.div`
   color: black;
 `;
 
-function TodoItem({ task, index, onDelete, onCheckedChange }) {
+function TodoItem({ task, index, onDelete, onCheckedChange, onEdit }) {
   const [checked, setChecked] = useState(task.isChecked);
+  const [currentTitle, setTitle] = useState(task.title);
+  const [isEditing, setEditing] = useState(false);
 
   const onDeleteClick = () => {
     onDelete(index);
@@ -36,6 +38,10 @@ function TodoItem({ task, index, onDelete, onCheckedChange }) {
     setChecked(!checked);
   };
 
+  const onEditClick = () => {
+    onEdit(index, currentTitle);
+    setEditing(false);
+  };
   return (
     <MainContainer>
       <Checkbox
@@ -44,11 +50,33 @@ function TodoItem({ task, index, onDelete, onCheckedChange }) {
         onChange={onCheckClick}
       />
       {checked ? (
-        <TitleGreen>{task.title}</TitleGreen>
+        <TitleGreen>
+          {isEditing ? (
+            <input
+              value={currentTitle}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          ) : (
+            <span>{currentTitle}</span>
+          )}
+        </TitleGreen>
       ) : (
-        <TitleBlack>{task.title}</TitleBlack>
+        <TitleBlack>
+          {isEditing ? (
+            <input
+              value={currentTitle}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          ) : (
+            currentTitle
+          )}
+        </TitleBlack>
       )}
-
+      {isEditing ? (
+        <button onClick={onEditClick}>Save</button>
+      ) : (
+        <button onClick={(e) => setEditing(true)}>Edit</button>
+      )}
       <DeleteButton onClick={onDeleteClick}> Delete Item </DeleteButton>
     </MainContainer>
   );

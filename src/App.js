@@ -30,8 +30,16 @@ const AddButton = styled.button`
 `;
 
 function App() {
+  // localStorage.clear();
   const [taskTitle, setTaskTitle] = React.useState('');
-  const [tasks, setTasks] = React.useState([]);
+  const [tasks, setTasks] = React.useState(
+    localStorage.getItem('myNFactTasksHW21')
+      ? JSON.parse(localStorage.getItem('myNFactTasksHW21'))
+      : [],
+  );
+  React.useEffect(() => {
+    localStorage.setItem('myNFactTasksHW21', JSON.stringify(tasks));
+  }, [tasks]);
 
   const addTask = () => {
     if (taskTitle.length) {
@@ -42,7 +50,6 @@ function App() {
       setTasks(tasks.concat(newTask));
       setTaskTitle('');
     }
-    // console.log('tasks are: ', tasks); // leftover from hw1
   };
 
   const onTextChange = (e) => {
@@ -58,9 +65,15 @@ function App() {
   const onCheckedChange = (index) => {
     const tasksArray = tasks;
     tasksArray[index].isChecked = !tasksArray[index].isChecked;
-    // console.log('Changing checked: ');
-    // console.log(tasksArray);
     setTasks(tasksArray);
+    localStorage.setItem('myNFactTasksHW21', JSON.stringify(tasks));
+  };
+
+  const onEdit = (index, newValue) => {
+    const tasksArray = tasks;
+    tasksArray[index].title = newValue;
+    setTasks(tasksArray);
+    localStorage.setItem('myNFactTasksHW21', JSON.stringify(tasks));
   };
 
   return (
@@ -85,6 +98,7 @@ function App() {
           task={task}
           index={index}
           onDelete={onDelete}
+          onEdit={onEdit}
           onCheckedChange={onCheckedChange}
         />
       ))}

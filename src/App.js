@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
 import './App.css';
 import styled from 'styled-components';
-
 import TodoItem from './TodoItem';
+
+import firebase from './firebase';
 
 const MainContainer = styled.div`
   width: 100vw;
@@ -11,35 +13,46 @@ const MainContainer = styled.div`
   flex-direction: column;
   align-items: center;
 `;
-
 const Header = styled.div`
   width: 500px;
   margin-top: 50px;
   text-align: center;
 `;
-
 const InputRow = styled.div`
   margin-top: 50px;
   flex-direction: row;
 `;
-
 const TextInput = styled.input``;
-
 const AddButton = styled.button`
   margin-left: 50px;
 `;
 
+const useTasks = () => {
+  const [tasks, setTasks] = React.useState([]);
+
+  useEffect(() => {
+    const unsubscribe = firebase
+      .firestore()
+      .collection('tasks')
+      .onSnapshot((snapshot) => {
+        const newTasks = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setTasks(newTasks);
+      });
+
+    return () => unsubscribe();
+  }, []);
+
+  return tasks;
+};
+
 function App() {
-  // localStorage.clear();
-  const [taskTitle, setTaskTitle] = React.useState('');
-  const [tasks, setTasks] = React.useState(
-    localStorage.getItem('myNFactTasksHW21')
-      ? JSON.parse(localStorage.getItem('myNFactTasksHW21'))
-      : [],
-  );
-  React.useEffect(() => {
-    localStorage.setItem('myNFactTasksHW21', JSON.stringify(tasks));
-  }, [tasks]);
+  const [taskTitle, setTaskTitle] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const tasks = useTasks();
 
   const addTask = () => {
     if (taskTitle.length) {
@@ -47,8 +60,17 @@ function App() {
         title: taskTitle,
         isChecked: false,
       };
-      setTasks(tasks.concat(newTask));
-      setTaskTitle('');
+      //save to firebase
+      setIsLoading(true);
+      firebase
+        .firestore()
+        .collection('tasks')
+        .add(newTask)
+        .then(() => {
+          setTaskTitle('');
+          setIsLoading(false);
+        })
+        .catch((err) => console.log('error adding task: ', err));
     }
   };
 
@@ -56,52 +78,80 @@ function App() {
     setTaskTitle(e.target.value);
   };
 
-  const onDelete = (index) => {
-    const tasksArray = [...tasks];
-    tasksArray.splice(index, 1);
-    setTasks(tasksArray);
+  const onDelete = (id) => {
+    firebase
+      .firestore()
+      .collection('tasks')
+      .doc(id)
+      .delete()
+      .then(() => console.log('successful delete'))
+      .catch((err) => console.log('err ', err));
   };
 
-  const onCheckedChange = (index) => {
-    const tasksArray = tasks;
-    tasksArray[index].isChecked = !tasksArray[index].isChecked;
-    setTasks(tasksArray);
-    localStorage.setItem('myNFactTasksHW21', JSON.stringify(tasks));
+  const onCheckedChange = (id, isChecked, title) => {
+    firebase
+      .firestore()
+      .collection('tasks')
+      .doc(id)
+      .set({
+        title,
+        isChecked,
+      })
+      .then(() => console.log('updated check'))
+      .catch((err) => console.log('update check err ', err));
   };
 
-  const onEdit = (index, newValue) => {
-    const tasksArray = tasks;
-    tasksArray[index].title = newValue;
-    setTasks(tasksArray);
-    localStorage.setItem('myNFactTasksHW21', JSON.stringify(tasks));
+  const onEdit = (id, newValue, isChecked, callback) => {
+    firebase
+      .firestore()
+      .collection('tasks')
+      .doc(id)
+      .set({
+        title: newValue,
+        isChecked,
+      })
+      .then(() => {
+        console.log('update success');
+        callback(false);
+      })
+      .catch((err) => console.log('update err ', err));
   };
 
   return (
     <MainContainer>
       <Header>Todo List</Header>
       <InputRow>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            addTask();
-          }}
-        >
-          <TextInput value={taskTitle} onChange={onTextChange} />
-          <AddButton type="submit" onClick={addTask}>
-            Add new task
-          </AddButton>
-        </form>
+        {isLoading ? (
+          <>
+            <div class="loader"></div>
+            <span>Loading</span>
+          </>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              addTask();
+            }}
+          >
+            <TextInput value={taskTitle} onChange={onTextChange} />
+            <AddButton type="submit">Add new task</AddButton>
+          </form>
+        )}
       </InputRow>
-      {tasks.map((task, index) => (
-        <TodoItem
-          key={index}
-          task={task}
-          index={index}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          onCheckedChange={onCheckedChange}
-        />
-      ))}
+      <table>
+        <tbody>
+          {tasks.map((task, index) => (
+            <TodoItem
+              key={task.id}
+              task={task}
+              index={index}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              onCheckedChange={onCheckedChange}
+            />
+          ))}
+        </tbody>
+      </table>
     </MainContainer>
   );
 }

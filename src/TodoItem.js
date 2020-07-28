@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-const MainContainer = styled.div`
-  width: 500px;
-  height: 40px;
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  margin-top: 40px;
-`;
+// const MainContainer = styled.div`
+//   width: 500px;
+//   height: 40px;
+//   display: flex;
+//   flex-direction: row;
+//   margin-top: 40px;
+// `;
 
 const DeleteButton = styled.button``;
 
@@ -30,55 +29,63 @@ function TodoItem({ task, index, onDelete, onCheckedChange, onEdit }) {
   const [isEditing, setEditing] = useState(false);
 
   const onDeleteClick = () => {
-    onDelete(index);
+    onDelete(task.id);
   };
 
   const onCheckClick = () => {
-    onCheckedChange(index);
+    onCheckedChange(task.id, !checked, task.title);
     setChecked(!checked);
   };
 
   const onEditClick = () => {
-    onEdit(index, currentTitle);
-    setEditing(false);
+    onEdit(task.id, currentTitle, checked, setEditing);
+    // setEditing(false);
   };
   return (
-    <MainContainer>
-      <Checkbox
-        type="checkbox"
-        checked={task.isChecked}
-        onChange={onCheckClick}
-      />
-      {checked ? (
-        <TitleGreen>
-          {isEditing ? (
-            <input
-              value={currentTitle}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          ) : (
-            <span>{currentTitle}</span>
-          )}
-        </TitleGreen>
-      ) : (
-        <TitleBlack>
-          {isEditing ? (
-            <input
-              value={currentTitle}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          ) : (
-            currentTitle
-          )}
-        </TitleBlack>
-      )}
-      {isEditing ? (
-        <button onClick={onEditClick}>Save</button>
-      ) : (
-        <button onClick={(e) => setEditing(true)}>Edit</button>
-      )}
-      <DeleteButton onClick={onDeleteClick}> Delete Item </DeleteButton>
-    </MainContainer>
+    <tr>
+      <td>
+        <Checkbox
+          type="checkbox"
+          checked={task.isChecked}
+          onChange={onCheckClick}
+        />
+      </td>
+      <td>
+        {checked ? (
+          <TitleGreen>
+            {isEditing ? (
+              <input
+                value={currentTitle}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            ) : (
+              <span>{currentTitle}</span>
+            )}
+          </TitleGreen>
+        ) : (
+          <TitleBlack>
+            {isEditing ? (
+              <input
+                value={currentTitle}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            ) : (
+              currentTitle
+            )}
+          </TitleBlack>
+        )}
+      </td>
+      <td>
+        {isEditing ? (
+          <button onClick={onEditClick}>Save</button>
+        ) : (
+          <button onClick={(e) => setEditing(true)}>Edit</button>
+        )}
+      </td>
+      <td>
+        <DeleteButton onClick={onDeleteClick}> Delete Item </DeleteButton>
+      </td>
+    </tr>
   );
 }
 

@@ -67,8 +67,17 @@ function App() {
     <MainContainer>
       <Header>Todo List</Header>
       <InputRow>
-        <TextInput value={taskTitle} onChange={onTextChange} />
-        <AddButton onClick={addTask}>Add new task</AddButton>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            addTask();
+          }}
+        >
+          <TextInput value={taskTitle} onChange={onTextChange} />
+          <AddButton type="submit" onClick={addTask}>
+            Add new task
+          </AddButton>
+        </form>
       </InputRow>
       {tasks.map((task, index) => (
         <TodoItem

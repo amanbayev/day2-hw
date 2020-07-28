@@ -10,9 +10,19 @@ const MainContainer = styled.div`
   margin-top: 40px;
 `;
 
-const Title = styled.div``;
-
 const DeleteButton = styled.button``;
+
+const Checkbox = styled.input`
+  background-color: green;
+`;
+
+const TitleGreen = styled.div`
+  color: green;
+`;
+
+const TitleBlack = styled.div`
+  color: black;
+`;
 
 function TodoItem({ task, index, onDelete, onCheckedChange }) {
   const [checked, setChecked] = useState(task.isChecked);
@@ -28,8 +38,17 @@ function TodoItem({ task, index, onDelete, onCheckedChange }) {
 
   return (
     <MainContainer>
-      <input type="checkbox" checked={task.isChecked} onChange={onCheckClick} />
-      <Title>{task.title}</Title>
+      <Checkbox
+        type="checkbox"
+        checked={task.isChecked}
+        onChange={onCheckClick}
+      />
+      {checked ? (
+        <TitleGreen>{task.title}</TitleGreen>
+      ) : (
+        <TitleBlack>{task.title}</TitleBlack>
+      )}
+
       <DeleteButton onClick={onDeleteClick}> Delete Item </DeleteButton>
     </MainContainer>
   );
